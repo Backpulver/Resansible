@@ -2,11 +2,11 @@
 - name: Create backup 
   hosts: localhost
   tasks:
-    - name: Get timestamp from the system
+    - name: Get timestamp
       shell: "date +%Y-%m-%d_%H-%M-%S"
       register: tstamp
 
-    - name: Create hidden backup directory
+    - name: Create backup directory
       file:
         path: "~/.backups"
         state: directory
@@ -36,3 +36,12 @@
           - "{{ home_dir.stdout }}/Documents"
         dest: "~/.backups/{{ tstamp.stdout }}/documents_backup.tar.gz"
         format: gz
+
+    - name: Create apt packages backup
+      shell: "apt-mark showmanual > ~/.backups/{{ tstamp.stdout }}/apt_packages.txt"
+
+    - name: Create VS snap packages backup
+      shell: "snap list > ~/.backups/{{ tstamp.stdout }}/snap_packages.txt"
+
+    - name: Create VS Code extensions backup
+      shell: "code --list-extensions > ~/.backups/{{ tstamp.stdout }}/vscode_extensions.txt"
