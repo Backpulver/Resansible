@@ -1,0 +1,38 @@
+---
+- name: Create backup 
+  hosts: localhost
+  tasks:
+    - name: Get timestamp from the system
+      shell: "date +%Y-%m-%d_%H-%M-%S"
+      register: tstamp
+
+    - name: Create hidden backup directory
+      file:
+        path: "~/.backups"
+        state: directory
+        mode: '0755'
+
+    - name: Create timestamp directory
+      file:
+        path: "~/.backups/{{ tstamp.stdout }}"
+        state: directory
+        mode: '0755'
+
+    - name: Get current user's home directory path
+      command: echo $HOME
+      register: home_dir
+
+    # - name: Archive Home Directory
+    #   ansible.builtin.archive:
+    #     path:
+    #       - "{{ home_dir.stdout }}"
+    #     dest: "~/.backups/{{ tstamp.stdout }}/home_backup.tar.gz"
+    #     format: gz
+    #     exclude_path: "{{ home_dir.stdout }}/.backups"
+
+    - name: Archive Documents Directory
+      ansible.builtin.archive:
+        path:
+          - "{{ home_dir.stdout }}/Documents"
+        dest: "~/.backups/{{ tstamp.stdout }}/documents_backup.tar.gz"
+        format: gz
