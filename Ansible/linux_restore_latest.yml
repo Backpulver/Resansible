@@ -1,0 +1,58 @@
+---
+- name: Restore from latest backup
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Find latest backup directory
+      shell: "find ~/.backups -mindepth 1 -maxdepth 1 -type d | sort -r | head -n 1"
+      register: latest_backup_dir
+
+    - name: Ensure latest backup directory exists
+      assert:
+        that:
+          - latest_backup_dir.stdout != ''
+
+    # - name: Restore Home directory
+    #   unarchive:
+    #     src: "{{ latest_backup_dir.stdout }}/home_backup.tar.gz"
+    #     dest: "/"
+    #     remote_src: yes
+
+    - name: Restore Documents directory
+      unarchive:
+        src: "{{ latest_backup_dir.stdout }}/documents_backup.tar.gz"
+        dest: "~/.backups/"
+        remote_src: yes
+    
+    - name: Check if apt is installed
+      command: which apt
+      register: apt_installed
+      ignore_errors: yes
+
+    - name: Install apt packages
+      apt:
+        name: "{{ item }}"
+        state: latest
+      loop: "{{ lookup('file', 'apt_packages.txt').splitlines() }}"
+      when: apt_installed.rc == 0
+      become: yes
+
+    - name: Check if snap is installed
+      command: which snap
+      register: snap_installed
+      ignore_errors: yes
+
+    - name: Install snap packages
+      shell: "snap install {{ item }}"
+      loop: "{{ lookup('file', 'snap_packages.txt').splitlines() }}"
+      when: snap_installed.rc == 0
+
+    - name: Check if VS Code is installed
+      command: which code
+      register: vscode_installed
+      ignore_errors: yes
+
+    - name: Install VS Code extensions
+      shell: "code --install-extension {{ item }}"
+      loop: "{{ lookup('file', 'vscode_extensions.txt').splitlines() }}"
+      when: vscode_installed.rc == 0
