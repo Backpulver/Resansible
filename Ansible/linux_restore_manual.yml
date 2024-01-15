@@ -1,26 +1,24 @@
 ---
-- name: Restore from latest backup
+- name: Restore from specified backup
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
+  vars:
+    backup_dir: "~/.backups/{{ backup_name }}"
   tasks:
-    - name: Find latest backup directory
-      shell: "find ~/.backups -mindepth 1 -maxdepth 1 -type d | grep -E [0-9]+ | sort -nr | head -n 1"
-      register: latest_backup_dir
-
-    - name: Ensure latest backup directory exists
+    - name: Ensure specified backup directory exists
       assert:
         that:
-          - latest_backup_dir.stdout != ''
+          - backup_dir != ''
 
     # - name: Restore Home directory
     #   unarchive:
-    #     src: "{{ latest_backup_dir.stdout }}/home_backup.tar.gz"
-    #     dest: "/"
+    #     src: "{{ backup_dir }}/home_backup.tar.gz"
+    #     dest: "~/.backups/"
     #     remote_src: yes
 
     - name: Restore Documents directory
       unarchive:
-        src: "{{ latest_backup_dir.stdout }}/documents_backup.tar.gz"
+        src: "{{ backup_dir }}/documents_backup.tar.gz"
         dest: "~/.backups/"
         remote_src: yes
     
@@ -34,7 +32,7 @@
       apt:
         name: "{{ item }}"
         state: latest
-      loop: "{{ lookup('file', '{{ latest_backup_dir.stdout }}/apt_packages.txt').splitlines() }}"
+      loop: "{{ lookup('file', backup_dir + '/apt_packages.txt').splitlines() }}"
       when: apt_installed.rc == 0
 
     - name: Check if snap is installed
@@ -45,7 +43,7 @@
     - name: Install snap packages
       become: yes
       shell: "snap install {{ item }}"
-      loop: "{{ lookup('file', '{{ latest_backup_dir.stdout }}/snap_packages.txt').splitlines() }}"
+      loop: "{{ lookup('file', backup_dir + '/snap_packages.txt').splitlines() }}"
       when: snap_installed.rc == 0
 
     - name: Check if VS Code is installed
@@ -55,6 +53,5 @@
 
     - name: Install VS Code extensions
       shell: "code --install-extension {{ item }}"
-      loop: "{{ lookup('file', '{{ latest_backup_dir.stdout }}/vscode_extensions.txt').splitlines() }}"
+      loop: "{{ lookup('file', backup_dir + '/vscode_extensions.txt').splitlines() }}"
       when: vscode_installed.rc == 0
-      

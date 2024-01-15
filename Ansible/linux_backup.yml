@@ -41,7 +41,7 @@
       shell: "apt-mark showmanual > ~/.backups/{{ tstamp.stdout }}/apt_packages.txt"
 
     - name: Create VS snap packages backup
-      shell: "snap list > ~/.backups/{{ tstamp.stdout }}/snap_packages.txt"
+      shell: "snap list | tail -n+2 | cut -d' ' -f1 > ~/.backups/{{ tstamp.stdout }}/snap_packages.txt"
 
     - name: Create VS Code extensions backup
       shell: "code --list-extensions > ~/.backups/{{ tstamp.stdout }}/vscode_extensions.txt"

@@ -30,13 +30,27 @@ perform_automatic_restore()
 
 perform_manual_restore() 
 {
+    local backups=($(view_backup_files | tail -n+2))
+    local backup_name
+
     view_backup_files
     echo "Enter the name of the backup to restore:"
-    read -r backup_name
 
-    # Uncomment and modify the following line as needed
-    # ansible-playbook linux_restore.yml --extra-vars "backup_name=$backup_name"
-    echo "Restoration completed for $backup_name"
+    while true; do
+        read -r backup_name
+
+        if [[ " ${backups[*]} " == *" $backup_name "* ]]; then
+            if ansible-playbook Ansible/linux_restore_manual.yml --extra-vars "backup_name=$backup_name"; then
+                echo "Restoration completed for $backup_name"
+            else
+                echo "Restoration failed"
+            fi
+            break
+        else
+            echo "Invalid backup name. Please enter a valid backup name from the list:"
+            printf '%s\n' "${backups[@]}"
+        fi
+    done
 }
 
 view_backup_files() 
