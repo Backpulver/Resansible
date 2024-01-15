@@ -1,6 +1,7 @@
 #!/bin/bash
 
-perform_backup() {
+perform_backup() 
+{
     echo "Performing backup..."
     if ansible-playbook Ansible/linux_backup.yml; then
         echo "Backup completed"
@@ -10,7 +11,8 @@ perform_backup() {
     fi
 }
 
-perform_automatic_restore() {
+perform_automatic_restore() 
+{
     echo "Performing restore from the latest backup..."
 
     if [[ -n "$(find ~/.backups/ -maxdepth 0 -type d -empty 2>/dev/null)" ]]; then
@@ -26,7 +28,8 @@ perform_automatic_restore() {
     fi
 }
 
-perform_manual_restore() {
+perform_manual_restore() 
+{
     view_backup_files
     echo "Enter the name of the backup to restore:"
     read -r backup_name
@@ -36,7 +39,8 @@ perform_manual_restore() {
     echo "Restoration completed for $backup_name"
 }
 
-view_backup_files() {
+view_backup_files() 
+{
     echo "Listing files..."
     if [[ -n "$(find ~/.backups/ -maxdepth 0 -type d -empty 2>/dev/null)" ]]; then
         echo "Empty backup directory!"
@@ -47,7 +51,8 @@ view_backup_files() {
     echo
 }
 
-show_menu() {
+show_menu() 
+{
     echo "1) Backup"
     echo "2) Automatic Restore from latest backup file"
     echo "3) Manual Restore"
