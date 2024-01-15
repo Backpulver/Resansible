@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  ansible:
+    image: ansible_backup
+    volumes:
+      - ssh:/root/.ssh/id_rsa:ro
+      - backups_dir:/.backups
+    environment:
+      ANSIBLE_HOST_KEY_CHECKING: "False"
+
+volumes:
+  ssh:
+  backups_dir:
