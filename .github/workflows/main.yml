@@ -37,7 +37,6 @@ jobs:
       - name: Snyk scan for vulnerabilities
         if: matrix.scan == 'Snyk-Code-Scan'
         run: |
-          pip3 install -r requirements.txt
           npm install snyk -g
           snyk auth ${{ secrets.SNYK_TOKEN }}
           snyk test
