@@ -7,130 +7,86 @@ on:
     branches: [ main ]
 
 jobs:
-  Check-Markdown-Files:
-    name: Check markdown files style
+  Lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  Check-Links-In-Markdown-Files:
-    name: Check links in markdown files
+      - name: Markdown Lint changelog file
+        uses: avto-dev/markdown-lint@v1
+        with:
+          rules: '/lint/rules/changelog.js'
+          config: '/lint/config/changelog.yml'
+          args: './CHANGELOG.md'
+
+      - name: Check link in markdown files
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+
+  Security-Scans:
+    needs: Lint
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        scan: [Snyk-Code-Scan, Sonarcloud-Code-Scan, SpectralOps-Vulnerability-Scan, Bandit-SAST-Checker, Git-Leaks-Scan]
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Check link in markdown files
-      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      - name: Snyk scan for vulnerabilities
+        if: matrix.scan == 'Snyk-Code-Scan'
+        run: |
+          pip3 install -r requirements.txt
+          npm install snyk -g
+          snyk auth ${{ secrets.SNYK_TOKEN }}
+          snyk test
 
-  Spellcheck:
-    name: Check spelling
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: SonarCloud scan
+        if: matrix.scan == 'Sonarcloud-Code-Scan'
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    - name: SpellCheck
-      uses: rojopolis/spellcheck-github-actions@0.11.0
-      with:
-        source_files: '**/*.md'
-        task_name: Markdown
+      - name: SpectralOps Vulnerability Scan
+        if: matrix.scan == 'SpectralOps-Vulnerability-Scan'
+        uses: spectralops/spectral-github-action@v4
+        with:
+          spectral-dsn: ${{ secrets.SPECTRAL_DSN }}
+          spectral-args: scan --ok
 
-#   Snyk-Code-Scan:
-#     name: Snyk scan for vulnerabilities
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+      - name: Bandit SAST Checker
+        if: matrix.scan == 'Bandit-SAST-Checker'
+        uses: jpetrucciani/bandit-check@main
+        with:
+          path: '.'
 
-#       - name: Run snyk scan
-#         working-directory: ${{github.workspace}}/src
-#         run: |
-#             pip3 install -r requirements.txt
-#             npm install snyk -g
-#             snyk auth ${{ secrets.SNYK_TOKEN }}
-#             snyk test
+      - name: GitLeaks Scan
+        if: matrix.scan == 'Git-Leaks-Scan'
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-#   Sonarcloud-Code-Scan:
-#     name: SonarCloud scan
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: SonarCloud Scan
-#         uses: SonarSource/sonarcloud-github-action@master
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-#   SpectralOps-Vulnerability-Scan:
-#     name: Spectral Code Scan
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Install and run Spectral CI
-#         uses: spectralops/spectral-github-action@v4
-#         with:
-#           spectral-dsn: ${{ secrets.SPECTRAL_DSN }}
-#           spectral-args: scan --ok
-
-#   Bandit-SAST-Checker:
-#     name: Bandit Vulnerability Checker
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Bandit Scan
-#         uses: jpetrucciani/bandit-check@main
-#         with:
-#           path: '.'
-
-#   Git-Leaks-Scan:
-#     name: Git leaks scan
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-#         with:
-#           fetch-depth: 0
-
-#   Trivy-Scan-And-Build:
-#     name: Trivy scan
-#     runs-on: ubuntu-latest
-#     needs: [Snyk-Code-Scan,Sonarcloud-Code-Scan,SpectralOps-Vulnerability-Scan,Bandit-SAST-Checker,Git-Leaks-Scan]
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v4
-
-#       - name: Run Trivy vulnerability scanner in fs mode
-#         uses: aquasecurity/trivy-action@master
-#         with:
-#           scan-type: 'fs'
-#           scan-ref: '.'
-#           trivy-config: trivy.yaml
-
-
-  Build-And-Publish-Docker-Image:
-    name: Publish the docker image
+  Build-And-Publish:
+    needs: Security-Scans
     runs-on: self-hosted
-    # needs: [Trivy-Scan-And-Build]
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Login to DockerHub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build docker image
-      run: docker build -t resansible .
-
-    - name: Add tag to docker image
-      run: docker tag resansible ${{ secrets.DOCKERHUB_USERNAME }}/resansible
-
-    - name: Publish to DockerHub
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/resansible
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  
+      - name: Build docker image
+        run: docker build -t resansible .
+  
+      - name: Add tag to docker image
+        run: docker tag resansible ${{ secrets.DOCKERHUB_USERNAME }}/resansible
+  
+      - name: Publish to DockerHub
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/resansible
+  
