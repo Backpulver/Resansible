@@ -34,13 +34,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Snyk scan for vulnerabilities
-        if: matrix.scan == 'Snyk-Code-Scan'
-        run: |
-          npm install snyk -g
-          snyk auth ${{ secrets.SNYK_TOKEN }}
-          snyk test
-
       - name: SonarCloud scan
         if: matrix.scan == 'Sonarcloud-Code-Scan'
         uses: SonarSource/sonarcloud-github-action@master
@@ -85,7 +78,14 @@ jobs:
   
       - name: Add tag to docker image
         run: docker tag resansible ${{ secrets.DOCKERHUB_USERNAME }}/resansible
-  
+
+      - name: Snyk Docker Image Scan
+        uses: snyk/actions/docker@master
+        with:
+          image: resansible
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
       - name: Publish to DockerHub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/resansible
   
