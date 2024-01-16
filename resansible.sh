@@ -3,7 +3,7 @@
 perform_backup() 
 {
     echo "Performing backup..."
-    if ansible-playbook Ansible/linux_backup.yml; then
+    if ansible-playbook -i Ansible/inventory Ansible/linux_backup.yml; then
         echo "Backup completed"
     else
         echo "Backup failed"
@@ -20,7 +20,7 @@ perform_automatic_restore()
         exit 1
     fi
 
-    if ansible-playbook Ansible/linux_restore_latest.yml; then
+    if ansible-playbook -i Ansible/inventory Ansible/linux_restore_latest.yml; then
         echo "Restore completed"
     else
         echo "Restore failed"
@@ -40,7 +40,7 @@ perform_manual_restore()
         read -r backup_name
 
         if [[ " ${backups[*]} " == *" $backup_name "* ]]; then
-            if ansible-playbook Ansible/linux_restore_manual.yml --extra-vars "backup_name=$backup_name"; then
+            if ansible-playbook -i Ansible/inventory Ansible/linux_restore_manual.yml --extra-vars "backup_name=$backup_name"; then
                 echo "Restoration completed for $backup_name"
             else
                 echo "Restoration failed"
