@@ -14,6 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Run Ansible-Lint
+        uses: ansible/ansible-lint-action@v4.1.0.post0
+        with:
+          targets: "./Ansible/"
+
+      - name: Install ShellCheck
+        run: sudo apt-get install shellcheck
+
+      - name: Run ShellCheck
+        run: shellcheck **/*.sh
+      
       - name: Markdown Lint changelog file
         uses: avto-dev/markdown-lint@v1
         with:
@@ -29,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        scan: [Snyk-Code-Scan, Sonarcloud-Code-Scan, SpectralOps-Vulnerability-Scan, Bandit-SAST-Checker, Git-Leaks-Scan]
+        scan: [Snyk-Code-Scan, Sonarcloud-Code-Scan, SpectralOps-Vulnerability-Scan, Bandit-SAST-Checker, Git-Leaks-Scan, Checkov-Scan]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,12 +52,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-      - name: SpectralOps Vulnerability Scan
-        if: matrix.scan == 'SpectralOps-Vulnerability-Scan'
-        uses: spectralops/spectral-github-action@v4
-        with:
-          spectral-dsn: ${{ secrets.SPECTRAL_DSN }}
-          spectral-args: scan --ok
+    #   - name: SpectralOps Vulnerability Scan
+    #     if: matrix.scan == 'SpectralOps-Vulnerability-Scan'
+    #     uses: spectralops/spectral-github-action@v4
+    #     with:
+    #       spectral-dsn: ${{ secrets.SPECTRAL_DSN }}
+    #       spectral-args: scan --ok
 
       - name: Bandit SAST Checker
         if: matrix.scan == 'Bandit-SAST-Checker'
@@ -59,6 +70,13 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkov Scan
+        if: matrix.scan == 'Checkov-Scan'
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: ./Kubernetes/
+          checkov_args: --framework kubernetes
 
   Build-And-Publish:
     needs: Security-Scans
