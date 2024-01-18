@@ -16,8 +16,8 @@ jobs:
 
       - name: Run Ansible-Lint
         uses: ansible/ansible-lint-action@v6
-        with:
-          targets: "./Ansible/"
+        # with:
+        #   targets: "./Ansible/"
 
       - name: Install ShellCheck
         run: sudo apt-get install shellcheck
