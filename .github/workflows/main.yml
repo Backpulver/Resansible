@@ -114,6 +114,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Stop previous deployment
+        run: |
+          docker-compose down
+
       - name: Deploy
         run: |
           docker-compose -f ~/Resansible/docker-compose.yml up -d
