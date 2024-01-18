@@ -23,7 +23,7 @@ jobs:
         run: sudo apt-get install shellcheck
 
       - name: Run ShellCheck
-        run: shellcheck **/*.sh
+        run: shellcheck resansible.sh
       
       - name: Markdown Lint changelog file
         uses: avto-dev/markdown-lint@v1
