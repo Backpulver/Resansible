@@ -2,10 +2,9 @@ name: Resansible main workflow
 
 on:
   push:
-    branches: [ main ]
+    branches: [ '*' ]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    branches: [ '*' ]
 
 jobs:
   Lint:
@@ -109,10 +108,10 @@ jobs:
       - name: Publish to DockerHub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/resansible
   
-  Deploy-With-Docker:
+  Deploy-Docker:
     needs: Build-And-Publish
     runs-on: self-hosted
-    if: github.event_name == 'workflow_dispatch'
+    if: github.ref != 'refs/heads/main'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -124,3 +123,20 @@ jobs:
       - name: Deploy
         run: |
           docker-compose -f ~/Resansible/docker-compose.yml up -d
+
+  Deploy-Kubernetes:
+    runs-on: self-hosted
+    needs: Build-And-Publish
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+    
+      - name: Start minikube
+        run: |
+          minikube start
+    
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f ~/Resansible/
+          
