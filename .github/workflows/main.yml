@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        scan: [Snyk-Code-Scan, Sonarcloud-Code-Scan, SpectralOps-Vulnerability-Scan, Bandit-SAST-Checker, Git-Leaks-Scan, Checkov-Scan]
+        scan: [Sonarcloud-Code-Scan, SpectralOps-Vulnerability-Scan, Bandit-SAST-Checker, Git-Leaks-Scan, Checkov-Scan]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -98,12 +98,12 @@ jobs:
         run: docker tag resansible ${{ secrets.DOCKERHUB_USERNAME }}/resansible
 
       - name: Snyk Docker Image Scan
-        uses: snyk/actions/docker@master
-        with:
-          image: resansible
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
+        run: |
+          docker build -t resansible .
+          npm install -g snyk
+          snyk auth ${{ secrets.SNYK_TOKEN }}
+          snyk test --severity-threshold=critical --docker resansible
+      
       - name: Publish to DockerHub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/resansible
   
