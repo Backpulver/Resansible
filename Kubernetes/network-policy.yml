@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: resansible-network-policy
+  namespace: resansible
+spec:
+  podSelector:
+    matchLabels:
+      app: resansible
+  policyTypes:
+  - Ingress
+  - Egress

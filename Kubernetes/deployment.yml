@@ -13,11 +13,21 @@ spec:
       labels:
         app: resansible
     spec:
+      securityContext:
+        runAsUser: 10000
+        runAsNonRoot: true
       containers:
       - name: resansible
         image: bacinka/resansible
         ports:
         - containerPort: 22
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         env:
         - name: ANSIBLE_HOST_KEY_CHECKING
           value: "False"
@@ -27,6 +37,12 @@ spec:
           readOnly: true
         - name: backups-volume
           mountPath: /.backups
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - NET_RAW
+            - ALL
       volumes:
       - name: ssh-volume
         persistentVolumeClaim:
@@ -34,3 +50,4 @@ spec:
       - name: backups-volume
         persistentVolumeClaim:
           claimName: backups-pvc
+      automountServiceAccountToken: false
