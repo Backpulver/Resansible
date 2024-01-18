@@ -30,7 +30,7 @@ perform_automatic_restore()
 
 perform_manual_restore() 
 {
-    local backups=($(view_backup_files | tail -n+2))
+    local backups=(view_backup_files)
     local backup_name
 
     view_backup_files
@@ -60,7 +60,7 @@ view_backup_files()
         echo "Empty backup directory!"
         exit 1
     else
-        find ~/.backups/ -mindepth 1 -maxdepth 1 -type d -printf "%f\n"
+        find ~/.backups/ -mindepth 1 -maxdepth 1 -type d -printf "%f\n" | tail -n+2
     fi
     echo
 }
@@ -91,10 +91,7 @@ while getopts ":br" opt; do
             perform_backup
             exit 0
             ;;
-        f)
-            view_backup_files
-            exit 0
-            ;;
+       
         r)
             perform_automatic_restore
             exit 0
