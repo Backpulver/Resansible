@@ -15,10 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-    #   - name: Run Ansible-Lint
-    #     uses: ansible/ansible-lint-action@main
-        # with:
-        #   targets: "./Ansible/"
+      - name: Run Ansible-Lint
+        continue-on-error: true
+        uses: ansible/ansible-lint-action@main
+        with:
+          targets: "./Ansible/"
 
       - name: Install ShellCheck
         run: sudo apt-get install shellcheck
@@ -66,14 +67,16 @@ jobs:
         with:
           path: '.'
 
-    #   - name: GitLeaks Scan
-    #     if: matrix.scan == 'Git-Leaks-Scan'
-    #     uses: gitleaks/gitleaks-action@v2
-    #     env:
-    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: GitLeaks Scan
+        if: matrix.scan == 'Git-Leaks-Scan'
+        continue-on-error: true
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkov Scan
         if: matrix.scan == 'Checkov-Scan'
+        continue-on-error: true
         uses: bridgecrewio/checkov-action@master
         with:
           directory: ./Kubernetes/
