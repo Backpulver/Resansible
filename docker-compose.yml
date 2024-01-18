@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   ansible:
-    image: ansible_backup
+    image: bacinka/resansible
     volumes:
       - ssh:/root/.ssh/id_rsa:ro
       - backups_dir:/.backups
