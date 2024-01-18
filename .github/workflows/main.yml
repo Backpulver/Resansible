@@ -99,7 +99,6 @@ jobs:
 
       - name: Snyk Docker Image Scan
         run: |
-          npm install -g snyk
           snyk auth ${{ secrets.SNYK_TOKEN }}
           snyk test --severity-threshold=critical --docker resansible
       
