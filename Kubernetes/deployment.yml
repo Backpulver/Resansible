@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resansible-deployment
+  namespace: resansible
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resansible
+  template:
+    metadata:
+      labels:
+        app: resansible
+    spec:
+      containers:
+      - name: resansible
+        image: bacinka/resansible
+        ports:
+        - containerPort: 22
+        env:
+        - name: ANSIBLE_HOST_KEY_CHECKING
+          value: "False"
+        volumeMounts:
+        - name: ssh-volume
+          mountPath: /root/.ssh/id_rsa
+          readOnly: true
+        - name: backups-volume
+          mountPath: /.backups
+      volumes:
+      - name: ssh-volume
+        persistentVolumeClaim:
+          claimName: ssh-pvc
+      - name: backups-volume
+        persistentVolumeClaim:
+          claimName: backups-pvc

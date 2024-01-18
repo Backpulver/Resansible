@@ -10,11 +10,11 @@
         that:
           - backup_dir != ''
 
-    # - name: Restore Home directory
-    #   unarchive:
-    #     src: "{{ backup_dir }}/home_backup.tar.gz"
-    #     dest: "~/.backups/"
-    #     remote_src: yes
+    - name: Restore Home directory
+      unarchive:
+        src: "{{ backup_dir }}/home_backup.tar.gz"
+        dest: /"
+        remote_src: yes
 
     - name: Restore Documents directory
       unarchive:

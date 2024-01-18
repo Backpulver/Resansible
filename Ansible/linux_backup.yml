@@ -22,13 +22,13 @@
       command: echo $HOME
       register: home_dir
 
-    # - name: Archive Home Directory
-    #   ansible.builtin.archive:
-    #     path:
-    #       - "{{ home_dir.stdout }}"
-    #     dest: "~/.backups/{{ tstamp.stdout }}/home_backup.tar.gz"
-    #     format: gz
-    #     exclude_path: "{{ home_dir.stdout }}/.backups"
+    - name: Archive Home Directory
+      ansible.builtin.archive:
+        path:
+          - "{{ home_dir.stdout }}"
+        dest: "~/.backups/{{ tstamp.stdout }}/home_backup.tar.gz"
+        format: gz
+        exclude_path: "{{ home_dir.stdout }}/.backups"
 
     - name: Archive Documents Directory
       ansible.builtin.archive:

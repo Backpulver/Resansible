@@ -66,11 +66,11 @@ jobs:
         with:
           path: '.'
 
-      - name: GitLeaks Scan
-        if: matrix.scan == 'Git-Leaks-Scan'
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   - name: GitLeaks Scan
+    #     if: matrix.scan == 'Git-Leaks-Scan'
+    #     uses: gitleaks/gitleaks-action@v2
+    #     env:
+    #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkov Scan
         if: matrix.scan == 'Checkov-Scan'

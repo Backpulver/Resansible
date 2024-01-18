@@ -12,11 +12,11 @@
         that:
           - latest_backup_dir.stdout != ''
 
-    # - name: Restore Home directory
-    #   unarchive:
-    #     src: "{{ latest_backup_dir.stdout }}/home_backup.tar.gz"
-    #     dest: "/"
-    #     remote_src: yes
+    - name: Restore Home directory
+      unarchive:
+        src: "{{ latest_backup_dir.stdout }}/home_backup.tar.gz"
+        dest: "/"
+        remote_src: yes
 
     - name: Restore Documents directory
       unarchive:
