@@ -138,5 +138,5 @@ jobs:
     
       - name: Deploy to Kubernetes
         run: |
-          minikube kubectl -- apply -f ~/Resansible/
+          minikube kubectl -- apply -f ~/Resansible/Kubernetes
           
